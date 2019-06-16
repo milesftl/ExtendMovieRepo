@@ -41,7 +41,7 @@ namespace ExtendMovieAPI.Controllers
                 model.MiniMovieList = await _movieRepo.GetMovieListAsc(count, cursor, sort);
 
             //the user sorted and requested the last movie in the database, no movies are left
-            if (model.MiniMovieList.Any())
+            if (!model.MiniMovieList.Any())
                 return NotFound(cursor);
             //something terrible has happened
             if (model.MiniMovieList == null) return BadRequest();
