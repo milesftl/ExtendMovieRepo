@@ -1,16 +1,14 @@
-﻿using ExtendMovieAPI.Models;
-using ExtendMovieAPI.Services;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using ExtendMovieAPI.Models;
+using ExtendMovieAPI.Services;
 
 namespace ExtendMovieAPI.Repositories
 {
     public class MovieRepository : IMovieRepository
     {
-        private MovieContext _dbcontext;
+        private readonly MovieContext _dbcontext;
 
         public MovieRepository(MovieContext context)
         {
@@ -20,10 +18,9 @@ namespace ExtendMovieAPI.Repositories
         public async Task<MovieDetailModel> GetMovieDetail(int Id)
         {
             return await _dbcontext.MovieDetails.FindAsync(Id);
-
         }
+
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="count"></param>
         /// <param name="cursor"></param>
@@ -31,34 +28,30 @@ namespace ExtendMovieAPI.Repositories
         /// <returns></returns>
         public async Task<IEnumerable<MovieListModel>> GetMovieList(int count, long cursor, string sort)
         {
-            Type myType = typeof(MovieListModel);
-            PropertyInfo info = myType.GetProperty(sort);
-            Type passedType = info.PropertyType;
+            var myType = typeof(MovieListModel);
+            var info = myType.GetProperty(sort);
+            var passedType = info.PropertyType;
             IEnumerable<MovieListModel> movieList;
-            MovieListModel cursormovie = await _dbcontext.MovieList.FindAsync(cursor);
-            if (cursormovie == null)
-            {
+            var cursorMovie = await _dbcontext.MovieList.FindAsync(cursor);
+            if (cursorMovie == null)
                 movieList = _dbcontext.MovieList
-                     .OrderByDescending(q => info.GetValue(q, null))
-                     .ThenBy(q => q.Title)
-                     .Take(count);
-            }
+                    .OrderByDescending(q => info.GetValue(q, null))
+                    .ThenBy(q => q.Title)
+                    .Take(count);
             else
-            {
                 movieList = _dbcontext.MovieList
-                     .Where(q => q.VoteAverage <= cursormovie.VoteAverage)
-                     .OrderByDescending(q => info.GetValue(q, null))
-                     .ThenBy(q => q.Title)
-                     .AsEnumerable()
-                     .SkipWhile(q => q.VoteAverage == cursormovie.VoteAverage && q.Title.CompareTo(cursormovie.Title) <= 0)
-                     .Take(count);
-            }
+                    .Where(q => q.VoteAverage <= cursorMovie.VoteAverage)
+                    .OrderByDescending(q => info.GetValue(q, null))
+                    .ThenBy(q => q.Title)
+                    .AsEnumerable()
+                    .SkipWhile(q =>
+                        q.VoteAverage == cursorMovie.VoteAverage && q.Title.CompareTo(cursorMovie.Title) <= 0)
+                    .Take(count);
             return movieList;
         }
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="count"></param>
         /// <param name="cursor"></param>
@@ -66,28 +59,25 @@ namespace ExtendMovieAPI.Repositories
         /// <returns></returns>
         public async Task<IEnumerable<MovieListModel>> GetMovieListAsc(int count, long cursor, string sort)
         {
-            Type myType = typeof(MovieListModel);
-            PropertyInfo info = myType.GetProperty(sort);
+            var myType = typeof(MovieListModel);
+            var info = myType.GetProperty(sort);
             IEnumerable<MovieListModel> movieList;
 
-            MovieListModel cursormovie = await _dbcontext.MovieList.FindAsync(cursor);
-            if (cursormovie == null)
-            {
+            var cursorMovie = await _dbcontext.MovieList.FindAsync(cursor);
+            if (cursorMovie == null)
                 movieList = _dbcontext.MovieList
-                     .OrderBy(q => info.GetValue(q, null))
-                     .ThenBy(q => q.Title)
-                     .Take(count);
-            }
+                    .OrderBy(q => info.GetValue(q, null))
+                    .ThenBy(q => q.Title)
+                    .Take(count);
             else
-            {
                 movieList = _dbcontext.MovieList
-                     .Where(q => q.VoteAverage <= cursormovie.VoteAverage)
-                     .OrderBy(q => info.GetValue(q, null))
-                     .ThenBy(q => q.Title)
-                     .AsEnumerable()
-                     .SkipWhile(q => q.VoteAverage == cursormovie.VoteAverage && q.Title.CompareTo(cursormovie.Title) <= 0)
-                     .Take(count);
-            }
+                    .Where(q => q.VoteAverage <= cursorMovie.VoteAverage)
+                    .OrderBy(q => info.GetValue(q, null))
+                    .ThenBy(q => q.Title)
+                    .AsEnumerable()
+                    .SkipWhile(q =>
+                        q.VoteAverage == cursorMovie.VoteAverage && q.Title.CompareTo(cursorMovie.Title) <= 0)
+                    .Take(count);
             return movieList;
         }
     }
